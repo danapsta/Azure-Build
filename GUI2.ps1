@@ -4,14 +4,17 @@ Add-Type -AssemblyName System.Windows.Forms
 # Function Definitions
 function connect-azure {
     # Your existing connect-azure function code
+    Read-host "Connect-Azure has run"
 }
 
 function deploy-baseline {
     # Your existing deploy-baseline function code
+    read-host "Deploy-baseline has run"
 }
 
 function deploy-vpn {
     # Your existing deploy-vpn function code
+    read-host "Deploy-vpn has run"
 }
 
 # Function to create input dialog
@@ -81,12 +84,16 @@ $startButton.Size = New-Object System.Drawing.Size(75,23)
 $startButton.Text = 'Start'
 $startButton.Add_Click({
     # Gather Variables using GUI prompts
-    $Client = Get-Input 'Input Required' 'Enter Client Name' 
-    $location = Get-Input 'Input Required' 'Enter Region (centralus, eastus, westus, etc...) name must be exact' 'centralus'
+    $Client = Get-Input 'Client Name (Required)' 'Enter Client Name' 
+    $location = Get-Input 'Azure Region' 'Enter Region (Default: centralus)' 'centralus'
     # ... (rest of your variables here using Get-Input function)
-    $vmName = Get-Input 'Input Required' 'Enter the Name of the VM' 'DC01'
-    $vmSize = Get-Input 'Input Required' 'Enter the Size Code of the VM (Ex. Standard_DS1_v2)' 'Standard_DS1_v2'
-    $addressprefix = Get-Input 'Input Required' 'Enter the Address Space for the Environment' '10.1.0.0/16'
+    $vmName = Get-Input 'VM Name' 'VM Name (Default: DC01)'
+    $vmSize = Get-Input 'VM Size Code' 'VM Size (Default: Standard_DS1_v2)' 'Standard_DS1_v2'
+    $addressprefix = Get-Input 'Address Space' '(Default: 10.1.0.0/16)' '10.1.0.0/16'
+    $vmsubnet = Get-Input 'VM vNet Subnet' 'VM Subnet (Default: 10.1.1.0/24)' '10.1.1.0/24'
+    $gatewaysubnet = Get-Input 'Gateway Subnet' 'GW Subnet (Default: 10.1.2.0/24)' '10.1.2.0/24'
+    $cred = Get-Input 'VM Administrator Account' 'Leave blank... another window will pop up' '$null'
+    $cred = get-credential
 
     # Run connect-azure
     connect-azure
