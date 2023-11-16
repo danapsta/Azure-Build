@@ -1,4 +1,4 @@
-
+# Function Definitions
 function connect-azure {
     # Connect to the Client's Azure Environment
     install-module -name az -allowclobber -scope currentuser
@@ -8,6 +8,7 @@ function connect-azure {
 
 function deploy-baseline {
     # Build the Resource Group and assign non-user variables.
+    
     $resourcegroupname = "$Client-Infrastructure"
     $vmImage = "2022-datacenter-azure-edition"
 
@@ -52,7 +53,6 @@ function deploy-baseline {
     enable-azrecoveryservicesbackupprotection -resourcegroupname $resourcegroupname -name $vmName -Policy $enhanced -vaultid $vault.id
 
 }
-
 function deploy-vpn {
     # Build the VPN Gateway for the client based off the Gateway Subnet configuration from previous vNet
     $vnet = get-azvirtualnetwork
@@ -68,11 +68,56 @@ function deploy-vpn {
 
  # Gather Variable Details (User Input Required)
 $Client = Read-host -prompt "Enter Client Name"
-$location = Read-host -prompt "Enter Region (centralus, eastus, westus, etc...) name must be exact"
-$vmName = Read-host -prompt "Enter Name of VM"
-$vmSize = Read-host -prompt "Enter the VM Size (Ex. Standard_DS1_v2) (Name MUST BE EXACT)"
-$addressprefix = Read-host -prompt "Enter the Address Scope for vNet (Default: 10.1.0.0/16) THIS IS NOT THE VM SUBNET, JUST THE USABLE SCOPE"
+if ([string]::isnullorwhitespace($Client)) {
+    $Client = "DefaultClient"
+}
+$location = Read-host -prompt "Enter Region (centralus, eastus, westus, etc...) (Default: centralus)"
+if ([string]::isnullorwhitespace($location)) {
+    $location = "centralus"
+}
+$vmName = Read-host -prompt "Enter VM Name (Default: DC01)"
+if ([string]::isnullorwhitespace($vmName)) {
+    $vmName = "DC01"
+}
+$vmSize = Read-host -prompt "Enter the VM Size Code: (Ex. Standard_DS1_v2) (Default: Standard_DS1_v2)"
+if ([string]::isnullorwhitespace($vmSize)) {
+    $vmSize = "Standard_DS1_v2"
+}
+$addressprefix = Read-host -prompt "Enter the Address Space for vNet (Default: 10.1.0.0/16) THIS IS NOT THE VM SUBNET, JUST THE USABLE SCOPE"
+if ([string]::isnullorwhitespace($addressprefix)) {
+    $addressprefix = "10.1.0.0/16"
+}
 $vmsubnet = Read-host -prompt "Enter the VM subnet (Default: 10.1.1.0/24) This will be the main subnet for all VMs.  Must fall within the main scope.)"
+if ([string]::isnullorwhitespace($vmsubnet)) {
+    $vmsubnet = "10.1.1.0/24"
+}
 $gatewaysubnet = Read-host -prompt "Enter the VPN Gateway Subnet (Default 10.1.2.0/24) This will be used for...something.  Must fall within the main scope.)"
-# $cred = get-credential -prompt "Enter the username and password for VM Admin Account (Typically, ssadmin + p@)"
+if ([string]::isnullorwhitespace($gatewaysubnet)) {
+    $gatewaysubnet = "10.1.2.0/24"
+}
+$baseline1 = Read-host -prompt "Are you Wanting to Baseline an Azure Environment? (VM, vNet, Backup Config) (Default: Y) (Y/N)"
+if ([string]::isnullorwhitespace($baseline1)) {
+    $baseline1 = "Y"
+}
+$vpnline1 = Read-host -prompt "Are you wanting to Deploy a VPN Gateway? (Default: Y) (Y/N)"
+if ([string]::isnullorwhitespace($vpnline1)) {
+    $vpnline1 = "Y"
+}
+Read-Host "Input the desired VM Local Admin credentials in the pop-up window"
 $cred = get-credential
+
+connect-azure
+
+if ($baseline1 -eq 'Y' -or $baseline1 -eq 'y') {
+    deploy-baseline
+}
+
+if ($vpnline1 -eq 'Y' -or $vpnline1 -eq 'y') {
+    deploy-vpn
+}
+
+else {
+    Read-Host "Thanks!"
+}
+
+Read-Host "Deployment Complete.  Press Any Key to Exit"
